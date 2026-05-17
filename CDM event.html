@@ -85,8 +85,8 @@ body { font-family: 'Montserrat', sans-serif; background: var(--black); color: v
 .type-F { background: rgba(212,53,126,0.15); color: #E870A0; border: 1px solid rgba(212,53,126,0.4); }
 .type-H { background: rgba(66,133,244,0.15); color: #6BA4F5; border: 1px solid rgba(66,133,244,0.3); }
 .guest-names { flex: 1; min-width: 0; }
-.pseudo { font-size: 14px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.prenoms { font-size: 11px; color: var(--text-dim); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pseudo { font-size: 14px; font-weight: 500; color: #6BA4F5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.prenoms { font-size: 11px; color: #ffffff; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .arrived-toggle { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--border-strong); background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; font-family: 'Montserrat', sans-serif; }
 .arrived-toggle.checked { background: var(--green); border-color: var(--green); color: white; }
@@ -372,15 +372,21 @@ function render() {
       + '</div>'
       + '<div class="guest-details">'
       + '<div class="detail-item"><div class="detail-label">Peignoir remis</div><div class="mini-toggle">'
-      + '<button class="toggle-btn'+(g.peignoirRemis?' yes':'')+'" data-id="'+id+'" data-f="peignoirRemis" data-v="1">Oui</button>'
-      + '<button class="toggle-btn'+(!g.peignoirRemis?' no':'')+'" data-id="'+id+'" data-f="peignoirRemis" data-v="0">Non</button>'
+      + (g.peignoirReserve
+          ? '<button class="toggle-btn'+(g.peignoirRemis?' yes':'')+'" data-id="'+id+'" data-f="peignoirRemis" data-v="1">Oui</button>'
+            + '<button class="toggle-btn'+(!g.peignoirRemis?' no':'')+'" data-id="'+id+'" data-f="peignoirRemis" data-v="0">Non</button>'
+          : '<button class="toggle-btn" style="opacity:0.3;cursor:default;" disabled>Oui</button>'
+            + '<button class="toggle-btn" style="opacity:0.3;cursor:default;" disabled>Non</button>')
       + '</div></div>'
       + '<div class="detail-item"><div class="detail-label">Montant dû</div><div class="amount-row">'
       + '<input class="amount-input" type="number" min="0" step="1" value="'+(g.montantDu||'')+'" placeholder="0" data-id="'+id+'"><span style="font-size:11px;color:var(--text-muted)">€</span>'
       + '</div></div>'
       + '<div class="detail-item"><div class="detail-label">Paiement</div><div class="mini-toggle">'
-      + '<button class="toggle-btn'+(g.paye?' yes':'')+'" data-id="'+id+'" data-f="paye" data-v="1">Payé</button>'
-      + '<button class="toggle-btn'+(!g.paye?' no':'')+'" data-id="'+id+'" data-f="paye" data-v="0">Dû</button>'
+      + (g.montantDu > 0
+          ? '<button class="toggle-btn'+(g.paye?' yes':'')+'" data-id="'+id+'" data-f="paye" data-v="1">Payé</button>'
+            + '<button class="toggle-btn'+(!g.paye?' no':'')+'" data-id="'+id+'" data-f="paye" data-v="0">Dû</button>'
+          : '<button class="toggle-btn" style="opacity:0.3;cursor:default;" disabled>Payé</button>'
+            + '<button class="toggle-btn" style="opacity:0.3;cursor:default;" disabled>Dû</button>')
       + '</div></div>'
       + '<div class="detail-item"><div class="detail-label">Statut</div>'+sTag+'</div>'
       + '</div></div>';
