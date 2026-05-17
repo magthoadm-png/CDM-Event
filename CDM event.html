@@ -377,17 +377,16 @@ function render() {
       + '<div class="guest-card-header">'
       + '<div class="type-badge type-'+g.type+'">'+g.type+'</div>'
       + '<div class="guest-names"><div class="pseudo">'+esc(g.pseudo)+'</div><div class="prenoms">'+esc(g.prenoms)+'</div></div>'
-      + pTag
       + '<button class="arrived-toggle'+(g.arrive?' checked':'')+'" data-id="'+id+'">'+( g.arrive?'✓':'')+'</button>'
       + '<button class="delete-btn" data-id="'+id+'">✕</button>'
       + '</div>'
       + '<div class="guest-details">'
       + '<div class="detail-item"><div class="detail-label">Peignoir remis</div><div class="mini-toggle">'
-      + (g.peignoirReserve
+      + (g.peignoirReserve || g.peignoirRemis || g.peignoirDemande
           ? '<button class="toggle-btn'+(g.peignoirRemis?' yes':'')+'" data-id="'+id+'" data-f="peignoirRemis" data-v="1">Oui</button>'
             + '<button class="toggle-btn'+(!g.peignoirRemis?' no':'')+'" data-id="'+id+'" data-f="peignoirRemis" data-v="0">Non</button>'
-          : '<button class="toggle-btn" style="opacity:0.3;cursor:default;" disabled>Oui</button>'
-            + '<button class="toggle-btn" style="opacity:0.3;cursor:default;" disabled>Non</button>')
+          : '<button class="toggle-btn" style="opacity:0.3;" data-id="'+id+'" data-f="peignoirRemis" data-v="1">Oui</button>'
+            + '<button class="toggle-btn no" style="opacity:0.3;" data-id="'+id+'" data-f="peignoirRemis" data-v="0">Non</button>')
       + '</div></div>'
       + '<div class="detail-item"><div class="detail-label">Montant dû</div><div class="amount-row">'
       + '<input class="amount-input" type="number" min="0" step="1" value="'+(g.montantDu||'')+'" placeholder="0" data-id="'+id+'"><span style="font-size:11px;color:#ffffff;">€</span>'
@@ -427,7 +426,16 @@ function render() {
       for (var j=0;j<guests.length;j++) {
         if (String(guests[j].id)===id) {
           if (f==='paye') guests[j].paye = v==='1';
-          if (f==='peignoirRemis') guests[j].peignoirRemis = v==='1';
+          if (f==='peignoirRemis') {
+            var already = (v==='1' && guests[j].peignoirRemis) || (v==='0' && !guests[j].peignoirRemis && guests[j].peignoirDemande);
+            if (already && !guests[j].peignoirReserve) {
+              guests[j].peignoirRemis = false;
+              guests[j].peignoirDemande = false;
+            } else {
+              guests[j].peignoirRemis = v==='1';
+              guests[j].peignoirDemande = true;
+            }
+          }
           break;
         }
       }
