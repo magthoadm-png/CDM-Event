@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>CDM Event</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold: #C9A84C;
+  --gold-light: #E8C97A;
+  --gold-dim: #8A6F30;
+  --black: #0A0A0A;
+  --surface: #111111;
+  --surface2: #1A1A1A;
+  --surface3: #222222;
+  --border: rgba(201,168,76,0.25);
+  --border-strong: rgba(201,168,76,0.5);
+  --text: #F0E8D5;
+  --text-dim: rgba(240,232,213,0.6);
+  --text-muted: rgba(240,232,213,0.35);
+  --green: #4CAF7A;
+  --red: #D9534F;
+  --amber: #E8A020;
+  --radius: 8px;
+  --radius-lg: 14px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Montserrat', sans-serif; background: var(--black); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+
+.header { background: var(--surface); border-bottom: 1px solid var(--border-strong); padding: 14px 16px; display: flex; align-items: center; gap: 14px; position: sticky; top: 0; z-index: 100; }
+.header-title { flex: 1; }
+.header-title h1 { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 500; color: var(--gold-light); letter-spacing: 1px; line-height: 1.1; }
+.header-title .subtitle { font-size: 10px; font-weight: 300; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; margin-top: 2px; }
+.event-info { font-size: 11px; color: var(--text-dim); text-align: right; }
+.event-info strong { display: block; color: var(--gold); font-size: 12px; font-weight: 500; }
+
+.stats-bar { background: var(--surface2); border-bottom: 1px solid var(--border); padding: 10px 16px; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.stats-bar::-webkit-scrollbar { display: none; }
+.stat-pill { display: flex; flex-direction: column; align-items: center; background: var(--surface3); border: 1px solid var(--border); border-radius: 20px; padding: 6px 14px; white-space: nowrap; flex-shrink: 0; }
+.stat-pill .val { font-size: 18px; font-weight: 600; color: var(--gold); line-height: 1; }
+.stat-pill .lbl { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-top: 2px; }
+
+.toolbar { padding: 10px 16px; display: flex; gap: 8px; align-items: center; background: var(--surface); border-bottom: 1px solid var(--border); }
+.search-wrap { flex: 1; position: relative; }
+.search-wrap input { width: 100%; background: var(--surface3); border: 1px solid var(--border); border-radius: 20px; padding: 8px 14px 8px 34px; font-family: 'Montserrat', sans-serif; font-size: 13px; color: var(--text); outline: none; }
+.search-wrap input::placeholder { color: var(--text-muted); }
+.search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 14px; }
+.filter-btn { background: var(--surface3); border: 1px solid var(--border); border-radius: 20px; padding: 7px 12px; font-size: 11px; font-weight: 500; color: var(--text-dim); cursor: pointer; white-space: nowrap; font-family: 'Montserrat', sans-serif; }
+.filter-btn.active { background: var(--gold-dim); border-color: var(--gold); color: var(--black); }
+
+.import-zone { margin: 16px; border: 2px dashed var(--border-strong); border-radius: var(--radius-lg); padding: 20px; text-align: center; background: var(--surface2); }
+.import-zone .icon { font-size: 28px; margin-bottom: 8px; }
+.import-zone p { font-size: 13px; color: var(--text-dim); line-height: 1.5; }
+.import-zone p strong { color: var(--gold); }
+.import-zone small { font-size: 11px; color: var(--text-muted); }
+.import-buttons { display: flex; gap: 8px; justify-content: center; margin-top: 12px; flex-wrap: wrap; }
+
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 20px; font-family: 'Montserrat', sans-serif; font-size: 12px; font-weight: 500; cursor: pointer; border: none; }
+.btn-gold { background: linear-gradient(135deg, var(--gold-dim), var(--gold)); color: var(--black); }
+.btn-outline { background: transparent; border: 1px solid var(--border-strong); color: var(--gold); }
+
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 200; align-items: flex-end; justify-content: center; }
+.modal-overlay.show { display: flex; }
+.modal { background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: 20px; width: 100%; max-width: 640px; max-height: 80vh; overflow-y: auto; }
+.modal h2 { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 500; color: var(--gold); margin-bottom: 10px; }
+.modal-footer { display: flex; gap: 8px; margin-top: 14px; justify-content: flex-end; }
+.modal textarea { width: 100%; height: 140px; background: var(--surface3); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px; font-family: 'Montserrat', sans-serif; font-size: 12px; color: var(--text); resize: vertical; outline: none; }
+.format-hint { background: var(--surface3); border-radius: var(--radius); padding: 10px; font-size: 11px; color: var(--text-muted); font-family: monospace; margin-bottom: 12px; line-height: 1.8; }
+.modal-input { width: 100%; background: var(--surface3); border: 1px solid var(--border); border-radius: var(--radius); padding: 9px 12px; font-family: 'Montserrat', sans-serif; font-size: 13px; color: var(--text); outline: none; margin-top: 6px; }
+.modal-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); display: block; margin-top: 12px; }
+
+.type-sel-btn { padding: 6px 12px; border-radius: 16px; font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 500; cursor: pointer; border: 1px solid var(--border); background: var(--surface3); color: var(--text-muted); }
+.type-sel-btn.active { background: var(--gold-dim); border-color: var(--gold); color: var(--black); }
+
+.section-title { padding: 12px 16px 6px; font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; }
+.section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+.guest-list { padding: 0 16px 100px; display: flex; flex-direction: column; gap: 8px; }
+.guest-card { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+.guest-card.arrived { border-color: rgba(76,175,122,0.4); }
+.guest-card-header { display: flex; align-items: center; padding: 12px 14px; gap: 10px; }
+.type-badge { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex-shrink: 0; }
+.type-C { background: rgba(201,168,76,0.15); color: var(--gold); border: 1px solid var(--gold-dim); }
+.type-F { background: rgba(212,53,126,0.15); color: #E870A0; border: 1px solid rgba(212,53,126,0.4); }
+.type-H { background: rgba(66,133,244,0.15); color: #6BA4F5; border: 1px solid rgba(66,133,244,0.3); }
+.guest-names { flex: 1; min-width: 0; }
+.pseudo { font-size: 14px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.prenoms { font-size: 11px; color: var(--text-dim); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.arrived-toggle { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--border-strong); background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; font-family: 'Montserrat', sans-serif; }
+.arrived-toggle.checked { background: var(--green); border-color: var(--green); color: white; }
+.delete-btn { width: 28px; height: 28px; border-radius: 50%; border: 1px solid rgba(217,83,79,0.3); background: transparent; color: var(--red); font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-family: 'Montserrat', sans-serif; }
+
+.guest-details { border-top: 1px solid var(--border); padding: 10px 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.detail-item { display: flex; flex-direction: column; gap: 5px; }
+.detail-label { font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); }
+.mini-toggle { display: flex; gap: 4px; }
+.toggle-btn { padding: 4px 10px; border-radius: 12px; font-size: 10px; font-weight: 500; cursor: pointer; border: 1px solid var(--border); background: transparent; color: var(--text-muted); white-space: nowrap; font-family: 'Montserrat', sans-serif; }
+.toggle-btn.yes { background: rgba(76,175,122,0.15); border-color: var(--green); color: var(--green); }
+.toggle-btn.no { background: rgba(217,83,79,0.12); border-color: var(--red); color: var(--red); }
+.amount-row { display: flex; align-items: center; gap: 6px; }
+.amount-input { width: 70px; background: var(--surface3); border: 1px solid var(--border); border-radius: var(--radius); padding: 4px 8px; font-family: 'Montserrat', sans-serif; font-size: 12px; font-weight: 500; color: var(--amber); outline: none; text-align: right; }
+
+.legend { padding: 8px 16px; display: flex; gap: 14px; flex-wrap: wrap; }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--text-muted); }
+.legend-dot { width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 600; }
+
+.export-bar { padding: 12px 16px; display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--border); background: var(--surface); position: fixed; bottom: 0; left: 0; right: 0; z-index: 90; }
+
+.toast { position: fixed; bottom: 72px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--surface3); border: 1px solid var(--gold-dim); color: var(--gold-light); padding: 10px 20px; border-radius: 20px; font-size: 13px; font-weight: 500; z-index: 300; transition: transform 0.3s ease; white-space: nowrap; pointer-events: none; }
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+@media (min-width: 600px) {
+  .guest-details { grid-template-columns: 1fr 1fr 1fr 1fr; }
+  .header-title h1 { font-size: 24px; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-title">
+    <h1>Cercle de Magellan</h1>
+    <div class="subtitle">Gestion événement</div>
+  </div>
+  <div class="event-info">
+    <strong>CDM</strong>
+    <span id="eventDate"></span>
+  </div>
+</div>
+
+<div class="stats-bar">
+  <div class="stat-pill"><span class="val" id="sTotal">0</span><span class="lbl">Invités</span></div>
+  <div class="stat-pill"><span class="val" id="sArrived">0</span><span class="lbl">Arrivés</span></div>
+  <div class="stat-pill"><span class="val" id="sPeignoir">0</span><span class="lbl">Peignoirs</span></div>
+  <div class="stat-pill"><span class="val" id="sRemis">0</span><span class="lbl">Remis</span></div>
+  <div class="stat-pill"><span class="val" id="sDue" style="color:var(--amber)">0€</span><span class="lbl">À encaisser</span></div>
+  <div class="stat-pill"><span class="val" id="sPaid" style="color:var(--green)">0€</span><span class="lbl">Encaissé</span></div>
+</div>
+
+<div class="toolbar">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="Rechercher...">
+  </div>
+  <button class="filter-btn active" id="fAll">Tous</button>
+  <button class="filter-btn" id="fArrived">Arrivés</button>
+  <button class="filter-btn" id="fPending">Attente</button>
+</div>
+
+<div id="importZone" style="margin:16px;border:2px dashed var(--border-strong);border-radius:var(--radius-lg);padding:24px;text-align:center;background:var(--surface2);">
+  <div style="font-size:32px;margin-bottom:10px;">📋</div>
+  <p style="font-size:13px;color:var(--text-dim);line-height:1.6;"><strong style="color:var(--gold)">Importer la liste des invités</strong><br>Glissez un fichier CSV ou cliquez pour choisir</p>
+  <p style="font-size:11px;color:var(--text-muted);margin-top:6px;">Format : Type (C/F/H) | Pseudo | Prénoms | Peignoirs (0/1/2) | Montant dû</p>
+  <div style="display:flex;gap:8px;justify-content:center;margin-top:14px;flex-wrap:wrap;">
+    <button class="btn btn-gold" id="btnFileOpen">📁 Fichier CSV</button>
+    <button class="btn btn-outline" id="btnPaste">📋 Coller données</button>
+    <button class="btn btn-outline" id="btnManual">+ Manuel</button>
+    <button class="btn btn-outline" id="btnDemo">✨ Démo</button>
+  </div>
+  <input type="file" id="fileInput" accept=".csv,.tsv,.txt" style="display:none">
+</div>
+
+<div id="legend" class="legend" style="display:none">
+  <div class="legend-item"><div class="legend-dot type-C">C</div> Couple</div>
+  <div class="legend-item"><div class="legend-dot type-F">F</div> Femme</div>
+  <div class="legend-item"><div class="legend-dot type-H">H</div> Homme</div>
+</div>
+<div id="sectionTitle" class="section-title" style="display:none">Liste des invités</div>
+<div id="guestList" class="guest-list"></div>
+
+<div id="exportBar" class="export-bar" style="display:none">
+  <button class="btn btn-gold" id="btnAdd">+ Ajouter</button>
+  <button class="btn btn-outline" id="btnExport">📥 Export</button>
+  <button class="btn btn-outline" id="btnReset">🔄 Nouveau</button>
+</div>
+
+<!-- Modal coller -->
+<div class="modal-overlay" id="pasteModal">
+  <div class="modal">
+    <h2>Coller depuis Google Sheets</h2>
+    <div class="format-hint">Ordre : Type | Pseudo | Prénoms | Peignoirs | Montant<br>Type : C, F ou H — Peignoir : 0, 1, 2 — Montant : nombre</div>
+    <textarea id="pasteArea" placeholder="Colle tes données ici..."></textarea>
+    <div class="modal-footer">
+      <button class="btn btn-outline" id="btnPasteCancel">Annuler</button>
+      <button class="btn btn-gold" id="btnPasteConfirm">Importer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal ajouter -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <h2>Ajouter un invité</h2>
+    <span class="modal-label">Type</span>
+    <div style="display:flex;gap:8px;margin-top:6px;">
+      <button class="type-sel-btn active" id="typeC" data-val="C">C — Couple</button>
+      <button class="type-sel-btn" id="typeF" data-val="F">F — Femme</button>
+      <button class="type-sel-btn" id="typeH" data-val="H">H — Homme</button>
+    </div>
+    <span class="modal-label">Pseudo</span>
+    <input class="modal-input" type="text" id="addPseudo" placeholder="Ex: Les Phoenix">
+    <span class="modal-label">Prénoms</span>
+    <input class="modal-input" type="text" id="addPrenoms" placeholder="Ex: Marc & Sophie">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px;">
+      <div>
+        <span class="modal-label">Peignoir réservé</span>
+        <div style="display:flex;gap:6px;margin-top:6px;">
+          <button class="toggle-btn" id="addPeignoirOui">Oui</button>
+          <button class="toggle-btn no" id="addPeignoirNon">Non</button>
+        </div>
+      </div>
+      <div>
+        <span class="modal-label">Montant dû (€)</span>
+        <input class="modal-input" type="number" id="addMontant" min="0" step="1" placeholder="0" style="color:var(--amber)">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" id="btnAddCancel">Annuler</button>
+      <button class="btn btn-gold" id="btnAddConfirm">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var guests = [];
+var gFilter = 'all';
+var gSearch = '';
+var newType = 'C';
+var newPeignoir = false;
+
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function toast(msg) {
+  var el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(function() { el.classList.remove('show'); }, 2200);
+}
+
+function save() {
+  try { localStorage.setItem('cdm_guests', JSON.stringify(guests)); } catch(e) {}
+}
+
+function loadSaved() {
+  try {
+    var raw = localStorage.getItem('cdm_guests');
+    if (!raw) return;
+    var data = JSON.parse(raw);
+    if (data && data.length > 0) {
+      guests = data;
+      showListUI();
+      render();
+      toast(guests.length + ' invités restaurés');
+    }
+  } catch(e) {}
+}
+
+function parseBool(v) {
+  if (v === null || v === undefined || v === '') return false;
+  var s = String(v).trim().toLowerCase();
+  var n = parseFloat(s);
+  if (!isNaN(n)) return n > 0;
+  return ['oui','yes','x','true','ok','y'].indexOf(s) >= 0;
+}
+
+function parseMoney(v) {
+  if (!v) return 0;
+  var n = parseFloat(String(v).replace(',','.').replace('€','').trim());
+  return isNaN(n) ? 0 : n;
+}
+
+function parseData(text) {
+  var lines = text.trim().split(/\r?\n/);
+  var out = [];
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i].trim();
+    if (!line) continue;
+    var sep = line.indexOf('\t') >= 0 ? '\t' : ',';
+    var c = line.split(sep).map(function(x) { return x.replace(/^["'\s]+|["'\s]+$/g,''); });
+    var t = (c[0] || '').toUpperCase();
+    if (['C','F','H'].indexOf(t) < 0) continue;
+    out.push({
+      id: Date.now() + i + Math.random(),
+      type: t,
+      pseudo: c[1] || '',
+      prenoms: c[2] || '',
+      peignoirReserve: parseBool(c[3]),
+      peignoirRemis: false,
+      montantDu: parseMoney(c[4]),
+      paye: false,
+      arrive: false
+    });
+  }
+  return out;
+}
+
+function showListUI() {
+  document.getElementById('importZone').style.display = 'none';
+  document.getElementById('legend').style.display = 'flex';
+  document.getElementById('sectionTitle').style.display = 'flex';
+  document.getElementById('exportBar').style.display = 'flex';
+}
+
+function loadGuests(data) {
+  guests = data;
+  showListUI();
+  render();
+  save();
+  toast(data.length + ' invités chargés');
+}
+
+function stats() {
+  var a=0,p=0,r=0,due=0,paid=0;
+  for (var i=0;i<guests.length;i++) {
+    var g=guests[i];
+    if(g.arrive) a++;
+    if(g.peignoirReserve) p++;
+    if(g.peignoirRemis) r++;
+    if(g.montantDu>0) { if(g.paye) paid+=g.montantDu; else due+=g.montantDu; }
+  }
+  document.getElementById('sTotal').textContent = guests.length;
+  document.getElementById('sArrived').textContent = a;
+  document.getElementById('sPeignoir').textContent = p;
+  document.getElementById('sRemis').textContent = r;
+  document.getElementById('sDue').textContent = due>0 ? Math.round(due)+'€' : '0€';
+  document.getElementById('sPaid').textContent = paid>0 ? Math.round(paid)+'€' : '0€';
+}
+
+function getList() {
+  var list = guests.slice();
+  if (gFilter==='arrived') list = list.filter(function(g){return g.arrive;});
+  if (gFilter==='pending') list = list.filter(function(g){return !g.arrive;});
+  if (gSearch) {
+    var q = gSearch.toLowerCase();
+    list = list.filter(function(g){
+      return g.pseudo.toLowerCase().indexOf(q)>=0 || g.prenoms.toLowerCase().indexOf(q)>=0;
+    });
+  }
+  return list;
+}
+
+function render() {
+  stats();
+  var list = getList();
+  var el = document.getElementById('guestList');
+  if (!guests.length) { el.innerHTML=''; return; }
+  if (!list.length) { el.innerHTML='<div style="text-align:center;padding:32px;color:var(--text-muted);font-size:13px;">Aucun invité trouvé.</div>'; return; }
+
+  var html = '';
+  for (var i=0; i<list.length; i++) {
+    var g = list[i];
+    var id = String(g.id);
+    var pTag = g.peignoirReserve
+      ? '<span style="font-size:10px;color:var(--gold);background:rgba(201,168,76,0.12);padding:2px 7px;border-radius:8px;border:1px solid var(--border)">🛁 Peignoir</span>'
+      : '<span style="font-size:10px;color:var(--text-muted)">Sans peignoir</span>';
+    var sTag = g.arrive
+      ? '<span style="font-size:10px;color:var(--green);background:rgba(76,175,122,0.12);padding:2px 8px;border-radius:8px;">✓ Arrivé</span>'
+      : '<span style="font-size:10px;color:var(--text-muted)">En attente</span>';
+    html += '<div class="guest-card'+(g.arrive?' arrived':'')+'" data-id="'+id+'">'
+      + '<div class="guest-card-header">'
+      + '<div class="type-badge type-'+g.type+'">'+g.type+'</div>'
+      + '<div class="guest-names"><div class="pseudo">'+esc(g.pseudo)+'</div><div class="prenoms">'+esc(g.prenoms)+'</div></div>'
+      + pTag
+      + '<button class="arrived-toggle'+(g.arrive?' checked':'')+'" data-id="'+id+'">'+( g.arrive?'✓':'')+'</button>'
+      + '<button class="delete-btn" data-id="'+id+'">✕</button>'
+      + '</div>'
+      + '<div class="guest-details">'
+      + '<div class="detail-item"><div class="detail-label">Peignoir remis</div><div class="mini-toggle">'
+      + '<button class="toggle-btn'+(g.peignoirRemis?' yes':'')+'" data-id="'+id+'" data-f="peignoirRemis" data-v="1">Oui</button>'
+      + '<button class="toggle-btn'+(!g.peignoirRemis?' no':'')+'" data-id="'+id+'" data-f="peignoirRemis" data-v="0">Non</button>'
+      + '</div></div>'
+      + '<div class="detail-item"><div class="detail-label">Montant dû</div><div class="amount-row">'
+      + '<input class="amount-input" type="number" min="0" step="1" value="'+(g.montantDu||'')+'" placeholder="0" data-id="'+id+'"><span style="font-size:11px;color:var(--text-muted)">€</span>'
+      + '</div></div>'
+      + '<div class="detail-item"><div class="detail-label">Paiement</div><div class="mini-toggle">'
+      + '<button class="toggle-btn'+(g.paye?' yes':'')+'" data-id="'+id+'" data-f="paye" data-v="1">Payé</button>'
+      + '<button class="toggle-btn'+(!g.paye?' no':'')+'" data-id="'+id+'" data-f="paye" data-v="0">Dû</button>'
+      + '</div></div>'
+      + '<div class="detail-item"><div class="detail-label">Statut</div>'+sTag+'</div>'
+      + '</div></div>';
+  }
+  el.innerHTML = html;
+
+  el.querySelectorAll('.arrived-toggle').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var id = btn.getAttribute('data-id');
+      for (var j=0;j<guests.length;j++) {
+        if (String(guests[j].id)===id) {
+          guests[j].arrive = !guests[j].arrive;
+          if (guests[j].arrive) toast(guests[j].pseudo+' arrivé(e)');
+          break;
+        }
+      }
+      save(); render();
+    });
+  });
+
+  el.querySelectorAll('[data-f]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var id = btn.getAttribute('data-id');
+      var f = btn.getAttribute('data-f');
+      var v = btn.getAttribute('data-v');
+      for (var j=0;j<guests.length;j++) {
+        if (String(guests[j].id)===id) {
+          if (f==='paye') guests[j].paye = v==='1';
+          if (f==='peignoirRemis') guests[j].peignoirRemis = v==='1';
+          break;
+        }
+      }
+      save(); render();
+    });
+  });
+
+  el.querySelectorAll('.delete-btn').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var id = btn.getAttribute('data-id');
+      var name = '';
+      for (var j=0;j<guests.length;j++) { if (String(guests[j].id)===id) { name=guests[j].pseudo; break; } }
+      if (!confirm('Supprimer '+name+' ?')) return;
+      guests = guests.filter(function(g){ return String(g.id)!==id; });
+      save(); render();
+      toast(name+' supprimé(e)');
+    });
+  });
+
+  el.querySelectorAll('.amount-input').forEach(function(inp) {
+    inp.addEventListener('change', function() {
+      var id = inp.getAttribute('data-id');
+      for (var j=0;j<guests.length;j++) {
+        if (String(guests[j].id)===id) { guests[j].montantDu = parseFloat(inp.value)||0; break; }
+      }
+      save(); stats();
+    });
+  });
+}
+
+// Search & filters
+document.getElementById('searchInput').addEventListener('input', function() {
+  gSearch = this.value;
+  render();
+});
+
+function setFilter(f) {
+  gFilter = f;
+  document.getElementById('fAll').classList.toggle('active', f==='all');
+  document.getElementById('fArrived').classList.toggle('active', f==='arrived');
+  document.getElementById('fPending').classList.toggle('active', f==='pending');
+  render();
+}
+document.getElementById('fAll').addEventListener('click', function(){ setFilter('all'); });
+document.getElementById('fArrived').addEventListener('click', function(){ setFilter('arrived'); });
+document.getElementById('fPending').addEventListener('click', function(){ setFilter('pending'); });
+
+// File import
+document.getElementById('btnFileOpen').addEventListener('click', function() {
+  document.getElementById('fileInput').click();
+});
+document.getElementById('fileInput').addEventListener('change', function() {
+  var file = this.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var data = parseData(e.target.result);
+    if (!data.length) { toast('Aucun invité détecté.'); return; }
+    loadGuests(data);
+  };
+  reader.readAsText(file);
+  this.value = '';
+});
+
+// Drag & drop
+var iz = document.getElementById('importZone');
+iz.addEventListener('dragover', function(e){ e.preventDefault(); });
+iz.addEventListener('drop', function(e) {
+  e.preventDefault();
+  var file = e.dataTransfer.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    var data = parseData(ev.target.result);
+    if (!data.length) { toast('Aucun invité détecté.'); return; }
+    loadGuests(data);
+  };
+  reader.readAsText(file);
+});
+
+// Paste modal
+document.getElementById('btnPaste').addEventListener('click', function() {
+  document.getElementById('pasteModal').classList.add('show');
+});
+document.getElementById('btnPasteCancel').addEventListener('click', function() {
+  document.getElementById('pasteModal').classList.remove('show');
+  document.getElementById('pasteArea').value = '';
+});
+document.getElementById('btnPasteConfirm').addEventListener('click', function() {
+  var data = parseData(document.getElementById('pasteArea').value);
+  if (!data.length) { toast('Aucun invité détecté.'); return; }
+  document.getElementById('pasteModal').classList.remove('show');
+  document.getElementById('pasteArea').value = '';
+  loadGuests(data);
+});
+
+// Demo
+document.getElementById('btnDemo').addEventListener('click', function() {
+  var demo = [
+    'C\tLes Phoenix\tMarc & Sophie\t2\t0',
+    'F\tAthéna\tNathalie\t0\t15',
+    'H\tOrion\tPierre\t1\t0',
+    'C\tLes Tempête\tJean & Laure\t2\t30',
+    'F\tVénus\tCéline\t0\t0',
+    'H\tArès\tDamien\t1\t15',
+    'C\tLes Aurore\tRaoul & Inès\t0\t0',
+    'F\tSélène\tMagdalena\t2\t0',
+    'H\tNeptune\tFrédéric\t0\t20'
+  ].join('\n');
+  loadGuests(parseData(demo));
+});
+
+// Add modal
+function openAddModal() {
+  newType = 'C'; newPeignoir = false;
+  document.getElementById('addPseudo').value = '';
+  document.getElementById('addPrenoms').value = '';
+  document.getElementById('addMontant').value = '';
+  document.getElementById('typeC').classList.add('active');
+  document.getElementById('typeF').classList.remove('active');
+  document.getElementById('typeH').classList.remove('active');
+  document.getElementById('addPeignoirOui').className = 'toggle-btn';
+  document.getElementById('addPeignoirNon').className = 'toggle-btn no';
+  document.getElementById('addModal').classList.add('show');
+}
+
+document.getElementById('btnAdd').addEventListener('click', openAddModal);
+document.getElementById('btnManual').addEventListener('click', function() {
+  showListUI(); render(); openAddModal();
+});
+
+['typeC','typeF','typeH'].forEach(function(id) {
+  document.getElementById(id).addEventListener('click', function() {
+    newType = document.getElementById(id).getAttribute('data-val');
+    ['typeC','typeF','typeH'].forEach(function(x){ document.getElementById(x).classList.remove('active'); });
+    document.getElementById(id).classList.add('active');
+  });
+});
+
+document.getElementById('addPeignoirOui').addEventListener('click', function() {
+  newPeignoir = true;
+  document.getElementById('addPeignoirOui').className = 'toggle-btn yes';
+  document.getElementById('addPeignoirNon').className = 'toggle-btn';
+});
+document.getElementById('addPeignoirNon').addEventListener('click', function() {
+  newPeignoir = false;
+  document.getElementById('addPeignoirOui').className = 'toggle-btn';
+  document.getElementById('addPeignoirNon').className = 'toggle-btn no';
+});
+
+document.getElementById('btnAddCancel').addEventListener('click', function() {
+  document.getElementById('addModal').classList.remove('show');
+});
+document.getElementById('btnAddConfirm').addEventListener('click', function() {
+  var pseudo = document.getElementById('addPseudo').value.trim();
+  if (!pseudo) { toast('Le pseudo est obligatoire.'); return; }
+  var g = {
+    id: Date.now() + Math.random(),
+    type: newType,
+    pseudo: pseudo,
+    prenoms: document.getElementById('addPrenoms').value.trim(),
+    peignoirReserve: newPeignoir,
+    peignoirRemis: false,
+    montantDu: parseMoney(document.getElementById('addMontant').value),
+    paye: false,
+    arrive: false
+  };
+  guests.push(g);
+  if (guests.length === 1) showListUI();
+  document.getElementById('addModal').classList.remove('show');
+  save(); render();
+  toast(g.pseudo + ' ajouté(e)');
+});
+
+// Export
+document.getElementById('btnExport').addEventListener('click', function() {
+  var rows = ['Type,Pseudo,Prénoms,Peignoir réservé,Peignoir remis,Montant dû,Payé,Arrivé'];
+  guests.forEach(function(g) {
+    rows.push([g.type, g.pseudo, g.prenoms,
+      g.peignoirReserve?'oui':'non',
+      g.peignoirRemis?'oui':'non',
+      g.montantDu||0,
+      g.paye?'oui':'non',
+      g.arrive?'oui':'non'
+    ].join(','));
+  });
+  var blob = new Blob([rows.join('\n')], {type:'text/csv'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = 'CDM_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+  toast('Export téléchargé');
+});
+
+// Reset
+document.getElementById('btnReset').addEventListener('click', function() {
+  if (!confirm('Réinitialiser pour un nouvel événement ?')) return;
+  guests = []; gFilter = 'all'; gSearch = '';
+  document.getElementById('searchInput').value = '';
+  setFilter('all');
+  document.getElementById('importZone').style.display = '';
+  document.getElementById('legend').style.display = 'none';
+  document.getElementById('sectionTitle').style.display = 'none';
+  document.getElementById('exportBar').style.display = 'none';
+  document.getElementById('guestList').innerHTML = '';
+  stats();
+  try { localStorage.removeItem('cdm_guests'); } catch(e) {}
+});
+
+// Init
+document.getElementById('eventDate').textContent = new Date().toLocaleDateString('fr-FR', {weekday:'long',day:'numeric',month:'long'});
+stats();
+loadSaved();
+</script>
+</body>
+</html>
