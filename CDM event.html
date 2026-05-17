@@ -41,7 +41,8 @@ body { font-family: 'Montserrat', sans-serif; background: var(--black); color: v
 .stat-pill .val { font-size: 18px; font-weight: 600; color: var(--gold); line-height: 1; }
 .stat-pill .lbl { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: #ffffff; margin-top: 2px; }
 
-.toolbar { padding: 10px 16px; display: flex; gap: 8px; align-items: center; background: var(--surface); border-bottom: 1px solid var(--border); }
+.toolbar { padding: 10px 16px; display: flex; flex-direction: column; gap: 8px; background: var(--surface); border-bottom: 1px solid var(--border); }
+.toolbar-row { display: flex; gap: 8px; align-items: center; }
 .search-wrap { flex: 1; position: relative; }
 .search-wrap input { width: 100%; background: var(--surface3); border: 1px solid var(--border); border-radius: 20px; padding: 8px 14px 8px 34px; font-family: 'Montserrat', sans-serif; font-size: 13px; color: var(--text); outline: none; }
 .search-wrap input::placeholder { color: var(--text-muted); }
@@ -140,15 +141,19 @@ body { font-family: 'Montserrat', sans-serif; background: var(--black); color: v
 </div>
 
 <div class="toolbar">
-  <div class="search-wrap">
-    <span class="search-icon">🔍</span>
-    <input type="text" id="searchInput" placeholder="Rechercher...">
+  <div class="toolbar-row">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="Rechercher...">
+    </div>
   </div>
-  <button class="filter-btn active" id="fAll">Tous</button>
-  <button class="filter-btn" id="fArrived">Arrivés</button>
-  <button class="filter-btn" id="fPending">Attente</button>
-  <button class="filter-btn" id="fPeignoir">🛁</button>
-  <button class="filter-btn" id="fDue">€ Dû</button>
+  <div class="toolbar-row">
+    <button class="filter-btn active" id="fAll">Tous</button>
+    <button class="filter-btn" id="fArrived">Arrivés</button>
+    <button class="filter-btn" id="fPending">Attente</button>
+    <button class="filter-btn" id="fPeignoir">🛁 Peignoir</button>
+    <button class="filter-btn" id="fDue">€ Dû</button>
+  </div>
 </div>
 
 <div id="importZone" style="margin:16px;border:2px dashed var(--border-strong);border-radius:var(--radius-lg);padding:24px;text-align:center;background:var(--surface2);">
