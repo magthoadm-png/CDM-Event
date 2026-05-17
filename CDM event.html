@@ -147,6 +147,8 @@ body { font-family: 'Montserrat', sans-serif; background: var(--black); color: v
   <button class="filter-btn active" id="fAll">Tous</button>
   <button class="filter-btn" id="fArrived">Arrivés</button>
   <button class="filter-btn" id="fPending">Attente</button>
+  <button class="filter-btn" id="fPeignoir">🛁</button>
+  <button class="filter-btn" id="fDue">€ Dû</button>
 </div>
 
 <div id="importZone" style="margin:16px;border:2px dashed var(--border-strong);border-radius:var(--radius-lg);padding:24px;text-align:center;background:var(--surface2);">
@@ -336,6 +338,8 @@ function getList() {
   var list = guests.slice();
   if (gFilter==='arrived') list = list.filter(function(g){return g.arrive;});
   if (gFilter==='pending') list = list.filter(function(g){return !g.arrive;});
+  if (gFilter==='peignoir') list = list.filter(function(g){return g.peignoirReserve;});
+  if (gFilter==='due') list = list.filter(function(g){return g.montantDu>0 && !g.paye;});
   if (gSearch) {
     var q = gSearch.toLowerCase();
     list = list.filter(function(g){
@@ -459,11 +463,15 @@ function setFilter(f) {
   document.getElementById('fAll').classList.toggle('active', f==='all');
   document.getElementById('fArrived').classList.toggle('active', f==='arrived');
   document.getElementById('fPending').classList.toggle('active', f==='pending');
+  document.getElementById('fPeignoir').classList.toggle('active', f==='peignoir');
+  document.getElementById('fDue').classList.toggle('active', f==='due');
   render();
 }
 document.getElementById('fAll').addEventListener('click', function(){ setFilter('all'); });
 document.getElementById('fArrived').addEventListener('click', function(){ setFilter('arrived'); });
 document.getElementById('fPending').addEventListener('click', function(){ setFilter('pending'); });
+document.getElementById('fPeignoir').addEventListener('click', function(){ setFilter('peignoir'); });
+document.getElementById('fDue').addEventListener('click', function(){ setFilter('due'); });
 
 // File import
 document.getElementById('btnFileOpen').addEventListener('click', function() {
