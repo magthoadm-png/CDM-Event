@@ -377,6 +377,7 @@ function render() {
       + '<div class="guest-card-header">'
       + '<div class="type-badge type-'+g.type+'">'+g.type+'</div>'
       + '<div class="guest-names"><div class="pseudo">'+esc(g.pseudo)+'</div><div class="prenoms">'+esc(g.prenoms)+'</div></div>'
+      + (g.peignoirReserve ? '<span style="font-size:18px;flex-shrink:0;">🛁</span>' : '')
       + '<button class="arrived-toggle'+(g.arrive?' checked':'')+'" data-id="'+id+'">'+( g.arrive?'✓':'')+'</button>'
       + '<button class="delete-btn" data-id="'+id+'">✕</button>'
       + '</div>'
