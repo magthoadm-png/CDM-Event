@@ -399,7 +399,17 @@ function render() {
             + '<button class="toggle-btn" style="opacity:0.3;cursor:default;" disabled>Dû</button>')
       + '</div></div>'
       + '<div class="detail-item"><div class="detail-label">Statut</div>'+sTag+'</div>'
-      + '</div></div>';
+      + '</div>'
+      + '<div style="border-top:1px solid var(--border);padding:10px 14px;display:flex;align-items:center;gap:10px;">'
+      + '<div style="font-size:16px;flex-shrink:0;">→</div>'
+      + '<div style="display:flex;gap:6px;">'
+      + [1,3,5].map(function(v) {
+          var active = g.cote === v;
+          return '<button style="width:36px;height:36px;border-radius:50%;border:2px solid '+(active?'var(--gold)':'var(--border)')+';background:'+(active?'rgba(201,168,76,0.25)':'transparent')+';color:'+(active?'var(--gold)':'#ffffff')+';font-size:13px;font-weight:600;cursor:pointer;font-family:Montserrat,sans-serif;" data-id="'+id+'" data-f="cote" data-v="'+v+'">'+v+'</button>';
+        }).join('')
+      + '</div>'
+      + '</div>'
+      + '</div>';
   }
   el.innerHTML = html;
 
@@ -426,6 +436,10 @@ function render() {
       for (var j=0;j<guests.length;j++) {
         if (String(guests[j].id)===id) {
           if (f==='paye') guests[j].paye = v==='1';
+          if (f==='cote') {
+            var val = parseInt(v);
+            guests[j].cote = guests[j].cote === val ? null : val;
+          }
           if (f==='peignoirRemis') {
             var already = (v==='1' && guests[j].peignoirRemis) || (v==='0' && !guests[j].peignoirRemis && guests[j].peignoirDemande);
             if (already && !guests[j].peignoirReserve) {
