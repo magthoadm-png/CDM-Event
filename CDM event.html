@@ -302,6 +302,7 @@ function parseData(text) {
       peignoirReserve: parseBool(c[3]),
       peignoirRemis: false,
       montantDu: parseMoney(c[4]),
+      bar: parseInt((c[5]||'0').replace(/[^0-9]/g,''),10) || 0,
       paye: false,
       arrive: false
     });
@@ -378,6 +379,7 @@ function render() {
       + '<div class="type-badge type-'+g.type+'">'+g.type+'</div>'
       + '<div class="guest-names"><div class="pseudo">'+esc(g.pseudo)+'</div><div class="prenoms">'+esc(g.prenoms)+'</div></div>'
       + (g.peignoirReserve ? '<span style="font-size:18px;flex-shrink:0;">🛁</span>' : '')
+      + (g.bar > 0 ? '<span style="font-size:18px;flex-shrink:0;" title="'+g.bar+' bouteille(s) commandée(s)">🍾</span>' : '')
       + '<button class="arrived-toggle'+(g.arrive?' checked':'')+'" data-id="'+id+'">'+( g.arrive?'✓':'')+'</button>'
       + '</div>'
       + '<div class="guest-details">'
@@ -403,7 +405,7 @@ function render() {
       + '<div style="border-top:1px solid var(--border);padding:10px 14px;display:flex;align-items:center;gap:10px;">'
       + '<div style="font-size:16px;flex-shrink:0;">→</div>'
       + '<div style="display:flex;gap:6px;">'
-      + [1,3,4,5].map(function(v) {
+      + [1,3,5].map(function(v) {
           var active = g.cote === v;
           return '<button style="width:36px;height:36px;border-radius:50%;border:2px solid '+(active?'var(--gold)':'var(--border)')+';background:'+(active?'rgba(201,168,76,0.25)':'transparent')+';color:'+(active?'var(--gold)':'#ffffff')+';font-size:13px;font-weight:600;cursor:pointer;font-family:Montserrat,sans-serif;" data-id="'+id+'" data-f="cote" data-v="'+v+'">'+v+'</button>';
         }).join('')
